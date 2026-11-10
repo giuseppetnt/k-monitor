@@ -1,0 +1,29 @@
+{
+  "files": [
+    "actions.h",
+    "fonts.h",
+    "images.c",
+    "images.h",
+    "screens.c",
+    "screens.h",
+    "structs.h",
+    "styles.c",
+    "styles.h",
+    "ui.c",
+    "ui.h",
+    "ui_font_kerb_font_100.c",
+    "ui_font_orbitron_30.c",
+    "ui_image_cloud.c",
+    "ui_image_cloudy.c",
+    "ui_image_logo.c",
+    "ui_image_pioggia.c",
+    "ui_image_pressione.c",
+    "ui_image_rain.c",
+    "ui_image_snow.c",
+    "ui_image_storm.c",
+    "ui_image_sun.c",
+    "ui_image_umidita.c",
+    "ui_image_vento.c",
+    "vars.h"
+  ]
+}
