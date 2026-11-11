@@ -27,7 +27,6 @@ typedef struct _objects_t {
     lv_obj_t *weather_screen;
     lv_obj_t *settings_screen;
     lv_obj_t *tamagochi;
-    lv_obj_t *obj0;
     lv_obj_t *info;
     lv_obj_t *lbl_title;
     lv_obj_t *lbl_subtitle;
@@ -39,6 +38,7 @@ typedef struct _objects_t {
     lv_obj_t *btn_dashboard;
     lv_obj_t *btn_settings;
     lv_obj_t *btn_tamagochi;
+    lv_obj_t *obj0;
     lv_obj_t *btn_wifi;
     lv_obj_t *lbl_cpu;
     lv_obj_t *lbl_ram;
@@ -71,6 +71,7 @@ typedef struct _objects_t {
     lv_obj_t *obj2;
     lv_obj_t *obj3;
     lv_obj_t *obj4;
+    lv_obj_t *obj5;
     lv_obj_t *btn_btop_back;
     lv_obj_t *arc_cpu_temp;
     lv_obj_t *label_cpu;
@@ -86,6 +87,7 @@ typedef struct _objects_t {
     lv_obj_t *lbl_subtitle_2;
     lv_obj_t *chart_board;
     lv_obj_t *chart_cpu;
+    lv_obj_t *obj6;
     lv_obj_t *label_live;
     lv_obj_t *led_ntp;
     lv_obj_t *btn_weather_back;
@@ -107,6 +109,7 @@ typedef struct _objects_t {
     lv_obj_t *lbl_title_4;
     lv_obj_t *lbl_subtitle_4;
     lv_obj_t *label_rain_title_1;
+    lv_obj_t *obj7;
     lv_obj_t *lbl_poll_value;
     lv_obj_t *btn_poll_dec;
     lv_obj_t *btn_poll_inc;
@@ -117,9 +120,11 @@ typedef struct _objects_t {
     lv_obj_t *btn_settings_back;
     lv_obj_t *lbl_title_3;
     lv_obj_t *lbl_subtitle_3;
+    lv_obj_t *obj8;
     lv_obj_t *btn_exit;
     lv_obj_t *obj_kerby;
     lv_obj_t *clock_tamagochi;
+    lv_obj_t *obj9;
 } objects_t;
 
 extern objects_t objects;

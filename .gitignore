@@ -4,11 +4,10 @@ secrets.h
 *.map
 build/
 *.png
-*.bmp
 *.gif
 *.bak
-screenshots/
 __pycache__/
 .vscode/shoot/
 .theia/
 *.eez-project-ui-state
+*.bak

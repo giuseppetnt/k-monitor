@@ -1,8 +1,8 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[KerberosUI.eez-project]:/userPages/5",
+    "selectedUserPageObject": "[KerberosUI.eez-project]:/userPages/3",
     "selectedThemeObject": "[KerberosUI.eez-project]:/themes/0",
-    "selectedFontObject": "[KerberosUI.eez-project]:/fonts/1",
+    "selectedFontObject": "[KerberosUI.eez-project]:/fonts/-1",
     "selectedBitmapObject": "[KerberosUI.eez-project]:/bitmaps/10",
     "subnavigationSelectedItems": {
       "variables-tab/sub-navigation/selected-item": "Global"
@@ -208,16 +208,15 @@
                 {
                   "type": "tab",
                   "id": "#c07f250e-a107-418f-bd06-af620a26b463",
-                  "name": "tamagochi",
+                  "name": "weather_screen",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[KerberosUI.eez-project]:/userPages/5",
+                    "objectPath": "[KerberosUI.eez-project]:/userPages/3",
                     "permanent": false
                   },
                   "icon": "svg:page"
                 }
-              ],
-              "active": true
+              ]
             },
             {
               "type": "tabset",
@@ -232,7 +231,8 @@
                   "enableClose": false,
                   "icon": "svg:properties"
                 }
-              ]
+              ],
+              "active": true
             }
           ]
         }
@@ -1062,13 +1062,17 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "1": {},
-          "4": {},
+          "0": {},
+          "2": {},
+          "3": {},
+          "5": {},
           "6": {},
           "7": {},
           "8": {},
-          "9": {},
-          "11": {}
+          "10": {},
+          "11": {
+            "$selected": true
+          }
         }
       },
       "transform": {
@@ -1076,7 +1080,7 @@
           "x": -315.25,
           "y": -181.99609375
         },
-        "scale": 0.67
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1089,19 +1093,20 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
+          "8": {
+            "$selected": true
+          },
           "10": {},
           "14": {},
-          "18": {
-            "$selected": true
-          }
+          "18": {}
         }
       },
       "transform": {
         "translate": {
-          "x": -316.01044372294416,
-          "y": -176.15030438311686
+          "x": -357.7225398979135,
+          "y": -213.01511345464235
         },
-        "scale": 0.67
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1121,10 +1126,10 @@
       },
       "transform": {
         "translate": {
-          "x": -316.01044372294416,
-          "y": -176.15030438311686
+          "x": -373.0104219163925,
+          "y": -197.6239281474123
         },
-        "scale": 0.67
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1161,14 +1166,18 @@
     "[KerberosUI.eez-project]:/userPages/3[flow-state]": {
       "selectionFront": {},
       "selectionBack": {
-        "0": {}
+        "0": {
+          "1": {
+            "$selected": true
+          }
+        }
       },
       "transform": {
         "translate": {
-          "x": -367.92695847063425,
-          "y": -199.07281732570925
+          "x": -407.6160284292823,
+          "y": -288.44321158681726
         },
-        "scale": 0.67
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1180,14 +1189,18 @@
     "[KerberosUI.eez-project]:/userPages/4[flow-state]": {
       "selectionFront": {},
       "selectionBack": {
-        "0": {}
+        "0": {
+          "8": {
+            "$selected": true
+          }
+        }
       },
       "transform": {
         "translate": {
           "x": -337,
           "y": -197
         },
-        "scale": 0.67
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1201,10 +1214,10 @@
       "selectionBack": {
         "0": {
           "0": {},
-          "1": {
+          "1": {},
+          "2": {
             "$selected": true
-          },
-          "2": {}
+          }
         }
       },
       "transform": {
@@ -1212,7 +1225,7 @@
           "x": -406.5999999999999,
           "y": -247
         },
-        "scale": 0.67
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1241,13 +1254,13 @@
     "POSITION AND SIZE",
     "MISCELLANEOUS",
     "TEXT",
-    "BORDER",
     "OUTLINE",
-    "SHADOW"
+    "SHADOW",
+    "BACKGROUND"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 0.67,
+  "flowZoom": 0.8,
   "implementationLanguage": "C",
   "openDialogDefaultPath": "/home/kerberos/Arduino/Kerberos/user_interface/KerberosUI/Orbitron-VariableFont_wght.ttf"
 }

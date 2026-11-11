@@ -3,6 +3,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+/*
+ * Modified by giuseppetnt for the KERBEROS project:
+ * board configuration adapted for the Waveshare ESP32-S3-Touch-LCD-5B.
+ */
 /**
  * @file   esp_panel_board_custom_conf.h
  * @brief  Configuration file for custom ESP development boards

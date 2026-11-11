@@ -17,7 +17,7 @@
 //  8. Configurazione WiFi con reti salvate
 //  9. Upload GIF del tamagochi da browser (http://IP-ESP/)
 // 10. Screenshot del display da browser (http://IP-ESP/screenshot)
-// 11. Indicatore potenza WiFi sempre visibile (barre + dBm)
+// 11. Indicatori diagnostici sempre visibili (WiFi + stato ESP32)
 // ==================================================
 
 // ==================================================
@@ -35,9 +35,11 @@
 #include <SPI.h>
 #include <SD.h>
 #include <time.h>
+#include <esp_sntp.h>
 #include <math.h>
 
 #include <esp_err.h>
+#include "driver/temperature_sensor.h"
 #include <esp_heap_caps.h>
 #include <esp_display_panel.hpp>
 #include <lvgl.h>
@@ -187,8 +189,10 @@ static volatile bool weather_refresh_now = false;
 static volatile bool weather_fetching = false;
 static volatile unsigned long last_weather_update = 0;
 
-// Orologio
+// Orologio NTP
 static bool ntp_configured = false;
+static volatile uint32_t last_ntp_sync_ms = 0;
+static volatile bool ntp_sync_seen = false;
 
 // Client HTTPS persistente
 static WiFiClientSecure server_client;
@@ -1554,6 +1558,110 @@ static void create_wifi_indicator()
 
 
 // ==================================================
+// 18c. DIAGNOSTICA ESP32 (ANGOLO IN ALTO A DESTRA)
+// ==================================================
+
+static const uint32_t DIAG_UPDATE_MS = 2000;
+static lv_obj_t *diag_label = nullptr;
+
+// Sensore termico interno dell'ESP32-S3
+static temperature_sensor_handle_t cpu_temp_sensor = nullptr;
+static bool cpu_temp_available = false;
+
+static void init_esp32_temperature()
+{
+    // Il sensore interno misura la temperatura del die, non quella ambiente.
+    temperature_sensor_config_t config =
+        TEMPERATURE_SENSOR_CONFIG_DEFAULT(20, 50);
+
+    if (temperature_sensor_install(&config, &cpu_temp_sensor) != ESP_OK) {
+        Serial.println("[TEMP] Installazione sensore interno non riuscita");
+        return;
+    }
+
+    if (temperature_sensor_enable(cpu_temp_sensor) != ESP_OK) {
+        Serial.println("[TEMP] Attivazione sensore interno non riuscita");
+        temperature_sensor_uninstall(cpu_temp_sensor);
+        cpu_temp_sensor = nullptr;
+        return;
+    }
+
+    cpu_temp_available = true;
+    Serial.println("[TEMP] Sensore interno ESP32-S3 attivo");
+}
+
+static void diagnostic_indicator_update_cb(lv_timer_t *timer)
+{
+    (void)timer;
+
+    if (diag_label == nullptr) return;
+
+    const uint32_t free_ram_kb = ESP.getFreeHeap() / 1024UL;
+    const uint32_t free_psram_mb = ESP.getFreePsram() / (1024UL * 1024UL);
+    const uint32_t flash_mb = ESP.getFlashChipSize() / (1024UL * 1024UL);
+    const uint32_t cpu_mhz = ESP.getCpuFreqMHz();
+    const uint32_t chip_rev = ESP.getChipRevision();
+
+    float cpu_temperature = 0.0f;
+    const bool temperature_ok = cpu_temp_available &&
+        temperature_sensor_get_celsius(cpu_temp_sensor, &cpu_temperature) == ESP_OK;
+
+    char temperature_text[12];
+    if (temperature_ok) {
+        snprintf(temperature_text, sizeof(temperature_text), "%.1fC", cpu_temperature);
+    } else {
+        snprintf(temperature_text, sizeof(temperature_text), "--");
+    }
+
+    const uint32_t uptime = millis() / 1000UL;
+    char uptime_text[16];
+    snprintf(
+        uptime_text, sizeof(uptime_text),
+        "%02lu:%02lu:%02lu",
+        (unsigned long)(uptime / 3600UL),
+        (unsigned long)((uptime % 3600UL) / 60UL),
+        (unsigned long)(uptime % 60UL)
+    );
+
+    lv_label_set_text_fmt(
+        diag_label,
+        "CPU %luM  RAM %luK  PS %luM  FL %luM  R%lu  UP %s  T %s",
+        (unsigned long)cpu_mhz,
+        (unsigned long)free_ram_kb,
+        (unsigned long)free_psram_mb,
+        (unsigned long)flash_mb,
+        (unsigned long)chip_rev,
+        uptime_text,
+        temperature_text
+    );
+}
+
+static void create_diagnostic_indicator()
+{
+    // Layer superiore: resta visibile su tutte le schermate.
+    // 10 px dal bordo superiore e 10 px dal bordo destro.
+    lv_obj_t *box = lv_obj_create(lv_layer_top());
+    lv_obj_remove_style_all(box);
+    lv_obj_set_size(box, 650, 26);
+    lv_obj_align(box, LV_ALIGN_TOP_RIGHT, -10, 10);
+    lv_obj_remove_flag(box, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_remove_flag(box, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(box, LV_OBJ_FLAG_OVERFLOW_VISIBLE);
+
+    diag_label = lv_label_create(box);
+    lv_obj_set_width(diag_label, LV_PCT(100));
+    lv_obj_set_pos(diag_label, 0, 0);
+    lv_obj_set_style_text_font(diag_label, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_set_style_text_color(diag_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+    lv_obj_set_style_text_align(diag_label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
+    lv_label_set_long_mode(diag_label, LV_LABEL_LONG_CLIP);
+
+    diagnostic_indicator_update_cb(nullptr);
+    lv_timer_create(diagnostic_indicator_update_cb, DIAG_UPDATE_MS, nullptr);
+}
+
+
+// ==================================================
 // 19. EVENTI WIFI
 // ==================================================
 
@@ -1748,10 +1856,50 @@ static void set_clock_text(const char *text)
 }
 
 
-static void set_ntp_led(uint32_t color)
+static void set_(uint32_t color)
 {
     lv_led_set_color(objects.led_ntp, lv_color_hex(color));
     lv_led_set_brightness(objects.led_ntp, 255);
+}
+
+
+// Chiamata dal client SNTP ogni volta che l'ora viene aggiornata davvero.
+static void ntp_sync_notification_cb(struct timeval *tv)
+{
+    (void)tv;
+    last_ntp_sync_ms = millis();
+    ntp_sync_seen = true;
+}
+
+
+static void update_ntp_led_countdown()
+{
+    // Prima della prima sincronizzazione il LED resta rosso.
+    if (!ntp_sync_seen) {
+        set_ntp_led(0xFF0000);
+        return;
+    }
+
+    uint32_t interval_ms = esp_sntp_get_sync_interval();
+    if (interval_ms == 0) {
+        interval_ms = 3600000UL; // fallback: intervallo predefinito di un'ora
+    }
+
+    const uint32_t elapsed_ms = (uint32_t)(millis() - last_ntp_sync_ms);
+    const uint32_t remaining_ms = (elapsed_ms >= interval_ms)
+        ? 0UL
+        : (interval_ms - elapsed_ms);
+
+    // Verde: piu' di 60 secondi.
+    // Arancione: ultimi 60..31 secondi.
+    // Rosso: ultimi 30 secondi, compreso lo zero.
+    if (remaining_ms <= 30000UL) {
+        set_ntp_led(0xFF0000);
+    } else if (remaining_ms <= 60000UL) {
+        set_ntp_led(0xFF8000);
+    } else {
+        set_ntp_led(0x00FF00);
+    }
 }
 
 
@@ -1765,6 +1913,10 @@ static void clock_timer_cb(lv_timer_t *timer)
 
     // Configurazione NTP al primo collegamento
     if (!ntp_configured) {
+
+        // Registriamo il callback prima di avviare SNTP, cosi' non perdiamo
+        // la notifica della prima sincronizzazione.
+        esp_sntp_set_time_sync_notification_cb(ntp_sync_notification_cb);
 
         configTzTime(
             "CET-1CEST,M3.5.0/2,M10.5.0/3",
@@ -1814,11 +1966,11 @@ static void clock_timer_cb(lv_timer_t *timer)
     // --------------------------------------------------
 
     if (last_state != 1) {
-
         last_state = 1;
-
-        set_ntp_led(0x00FF00);
     }
+
+    // Colore in base al tempo che manca alla prossima sincronizzazione NTP.
+    update_ntp_led_countdown();
 
     // Aggiorna i testi solo quando cambia il minuto
     if (timeinfo.tm_min == last_minute) {
@@ -1909,8 +2061,9 @@ static void init_interface()
     // Pagina impostazioni
     init_settings_page();
 
-    // Indicatore potenza WiFi (sempre visibile, in alto a sinistra)
+    // Indicatori sempre visibili: WiFi a sinistra, diagnostica ESP32 a destra.
     create_wifi_indicator();
+    create_diagnostic_indicator();
 
     // Timer LVGL: conto alla rovescia meteo e orologio
     lv_label_set_text(objects.label_timer_weather, "");
@@ -2336,6 +2489,9 @@ void setup()
     Serial.begin(115200);
 
     delay(500);
+
+    // Sensore termico interno ESP32-S3 per la diagnostica in alto a destra.
+    init_esp32_temperature();
 
     // Impostazioni salvate (intervalli)
     load_settings();
